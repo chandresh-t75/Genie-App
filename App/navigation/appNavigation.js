@@ -82,8 +82,8 @@ const GlobalNavigation = () => {
             <Stack.Screen name="activerequest" component={RequestDetail} />
             <Stack.Screen name={`bargain${userId}`} component={BargainingScreen} />
             <Stack.Screen name="requestentry" component={RequestEntry} />
-            <Stack.Screen name="define-request" component={DefineRequest} />
             <Stack.Screen name="image-suggestion" component={ImageSuggestion} />
+            <Stack.Screen name="define-request" component={DefineRequest} />
             <Stack.Screen name="requestcategory" component={RequestCategory} />
             <Stack.Screen name="addimg" component={AddImgScreen} />
             <Stack.Screen name="addexpectedprice" component={ExpectedPriceScreen} />

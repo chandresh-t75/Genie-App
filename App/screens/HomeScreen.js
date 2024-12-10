@@ -74,6 +74,7 @@ import Offer from "../assets/offer.svg";
 import DeviceInfo from "react-native-device-info";
 import MobileIcon from "../assets/mobileIcon.svg";
 import RightArrow from "../assets/arrow-right.svg";
+import SmallArrow from "../assets/small-arrow.svg";
 import YouTubeIframe from "react-native-youtube-iframe";
 import Category1 from "../assets/category1.png";
 import Category2 from "../assets/category2.png";
@@ -100,17 +101,19 @@ import Tab4 from "../assets/tab4.svg";
 // import Search from "../assets/search.svg";
 import Search from "../assets/search-black.svg";
 
-
 import {
   emtpyRequestImages,
   setEstimatedPrice,
   setExpectedPrice,
+  setNearByStoresCategory,
   setRequestCategory,
+  setRequestImages,
   setSuggestedImages,
 } from "../redux/reducers/userRequestsSlice";
 import { useFocusEffect } from "@react-navigation/native";
 import Share from "react-native-share";
 import SignUpModal from "./components/SignUpModal";
+import LocationRefreshModal from "./components/LocationRefreshModal.js";
 
 const { width } = Dimensions.get("window");
 
@@ -143,7 +146,7 @@ const servicess = [
     cat: Service2,
     name: "Services & Repair, Consumer Electronics & Accessories - Mobile, Laptop, digital products etc",
   },
-  { cat: Service3, name: "Clock Repair & Services" },
+  // { cat: Service3, name: "Clock Repair & Services" },
   { cat: Service4, name: "Automotive Parts/Services - 2 wheeler Fuel based" },
   { cat: Service5, name: "Automotive Parts/Services - 4 wheeler Fuel based" },
   {
@@ -182,7 +185,9 @@ const HomeScreen = () => {
   const [currentVersion, setCurrentVersion] = useState(null);
   const [playing, setPlaying] = useState(false);
   const [signUpModal, setSignUpModal] = useState(false);
-
+  const userLongitude = useSelector((store) => store.user.userLongitude);
+  const userLatitude = useSelector((store) => store.user.userLatitude);
+const [locationRefresh, setLocationRefresh] = useState(false)
   const onStateChange = useCallback((state) => {
     if (state === "ended") {
       setPlaying(false);
@@ -307,7 +312,7 @@ const HomeScreen = () => {
       dispatch(setSuggestedImages([]));
       dispatch(setExpectedPrice(0));
       dispatch(setEstimatedPrice(0));
-      dispatch(emtpyRequestImages());
+      dispatch(setRequestImages([]));
     }, [navigation])
   );
 
@@ -414,7 +419,42 @@ const HomeScreen = () => {
     };
   }, [spades]);
 
-  ////////////////////////////////////////////////////////////////////Fetch user details for getting payment status ////////////////////////////////////////////////////////////////////////////////////
+  /////////////////
+
+  const fetchNearByStores = useCallback(async () => {
+    try {
+      // console.log('User coors', userLongitude, userLatitude, userDetails.longitude, userDetails.latitude);
+      const longitude =
+        userLongitude !== 0 ? userLongitude : userDetails.longitude;
+      const latitude = userLatitude !== 0 ? userLatitude : userDetails.latitude;
+      // console.log(longitude, latitude);
+      if (!longitude || !latitude) return;
+
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        params: {
+          longitude: longitude,
+          latitude: latitude,
+        },
+      };
+      await axiosInstance
+        .get(`${baseUrl}/retailer/stores-near-me`, config)
+        .then((res) => {
+          const categories = res.data.map((category, index) => {
+            return { id: index + 1, name: category };
+          });
+
+          // Log the categories array to verify
+          console.log(categories);
+          dispatch(setNearByStoresCategory(categories));
+        });
+    } catch (error) {
+      console.error("error while fetching nearby stores", error);
+    }
+  }); ///////////////////////////////////////////////////Fetch user details for getting payment status ////////////////////////////////////////////////////////////////////////////////////
 
   const fetchUserDetailsToCreateSpade = async () => {
     if (!userDetails?._id) {
@@ -452,7 +492,9 @@ const HomeScreen = () => {
             });
             // fetchSpadeDetails(userDetails.unpaidSpades[0]);
           } else {
-            navigation.navigate("requestentry");
+            // navigation.navigate("requestentry");
+            await fetchNearByStores();
+            navigation.navigate("requestcategory");
           }
           await AsyncStorage.setItem(
             "userDetails",
@@ -593,7 +635,7 @@ const HomeScreen = () => {
                   await handleRefreshLocation(userDetails._id, accessToken);
                   setIsLoading(false);
                 }}
-                style={{width:"25%"}}
+                style={{ width: "25%" }}
               >
                 <View>
                   {isLoading ? (
@@ -666,12 +708,21 @@ const HomeScreen = () => {
           </View> */}
 
             <View className="mt-[20px] ">
-            <View className="flex-col items-center justify-center px-[10px]">
-              <Text className="text-center  text-[#fb8c00] text-[14px]" style={{ fontFamily: "Poppins-Regular" }}>Ask Genie for any shopping 
-              item or maintenance service you need. </Text>
-              <Text className="text-center  text-[#fb8c00] text-[14px]" style={{ fontFamily: "Poppins-Black" }}>Start your shopping now.  </Text>
-              
-            </View>
+              <View className="flex-col items-center justify-center px-[10px]">
+                <Text
+                  className="text-center  text-[#fb8c00] text-[14px]"
+                  style={{ fontFamily: "Poppins-Regular" }}
+                >
+                  Ask Genie for any shopping item or maintenance service you
+                  need.{" "}
+                </Text>
+                <Text
+                  className="text-center mt-[4px]  text-[#fb8c00] text-[14px]"
+                  style={{ fontFamily: "Poppins-Black" }}
+                >
+                  Start your live shopping now.{" "}
+                </Text>
+              </View>
               <TouchableOpacity
                 // onPress={() => {
                 //   navigation.navigate("store-search");
@@ -683,7 +734,7 @@ const HomeScreen = () => {
                 // className="mx-[16px] mt-[16px]"
                 style={{ margin: 16 }}
               >
-                <View  className="h-[60px]  flex-row border-[1px] border-[#fb8c00] bg-white rounded-3xl items-center justify-center ">
+                <View className="h-[60px]  flex-row border-[1px] border-[#fb8c00] bg-white rounded-3xl items-center justify-center ">
                   {!createSpadeLoading ? (
                     <Tab3 style={{ position: "absolute", left: 20 }} />
                   ) : (
@@ -692,12 +743,27 @@ const HomeScreen = () => {
                       style={{ position: "absolute", left: 20 }}
                     />
                   )}
-                  <Text
-                    className="text-[#fb8c00]  text-[12px] text-center"
-                    style={{ fontFamily: "Poppins-Italic" }}
+                  <View
+                    style={{ paddingHorizontal: 20, width: "70%" }}
+                    className=" flex flex-row justify-between items-center"
                   >
-                    Type your, spades my master....
-                  </Text>
+                    <View className="bg-[#55CD00] w-[10px] h-[10px] rounded-full"></View>
+
+                    <Text
+                      style={{
+                        fontFamily: "Poppins-Italic",
+                        fontSize: 14,
+                        color: "#fb8c00",
+                        paddingRight: 10,
+                        textAlign: "center",
+                      }}
+                    >
+                      Start Live Shopping
+                    </Text>
+                    <View>
+                      <SmallArrow />
+                    </View>
+                  </View>
                 </View>
               </TouchableOpacity>
             </View>
@@ -1084,17 +1150,21 @@ const HomeScreen = () => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-           onPress={() => {
-                  navigation.navigate("store-search");
-                }}
+            onPress={() => {
+              if(!userLongitude || !userLatitude){
+                 setLocationRefresh(true);
+              }
+              else{
+              navigation.navigate("store-search");
+              }
+            }}
             style={{
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "flex-end",
             }}
           >
-            
-              <Search />
+            <Search />
             <Text style={{ fontFamily: "Poppins-Regular", color: "#2e2c43" }}>
               Stores
             </Text>
@@ -1124,6 +1194,10 @@ const HomeScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
+      {
+        locationRefresh &&
+        <LocationRefreshModal locationRefresh={locationRefresh} setLocationRefresh={setLocationRefresh}/>
+      }
       {signUpModal && (
         <SignUpModal
           signUpModal={signUpModal}

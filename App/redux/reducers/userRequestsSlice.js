@@ -25,7 +25,7 @@ const userRequestDataSlice = createSlice({
         },
 
         setRequestImages: (state, action) => {
-            state.requestImages.push(action.payload);
+            state.requestImages=action.payload;
         },
         setExpectedPrice: (state, action) => {
             state.expectedPrice = action.payload;

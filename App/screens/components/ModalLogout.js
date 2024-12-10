@@ -60,7 +60,7 @@ const ModalLogout = ({ modalVisible, setModalVisible }) => {
             dispatch(requestClear());
 
             console.log('User data deleted successfully');
-            navigation.navigate("mobileNumber");
+            navigation.navigate("home");
         } catch (error) {
             setLoading(false)
             console.error('Error deleting user data:', error);

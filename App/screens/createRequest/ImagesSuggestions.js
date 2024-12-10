@@ -20,14 +20,16 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useNavigationState, useRoute } from "@react-navigation/native";
 import ClickImage from "../../assets/ClickImg.svg";
 import UploadImg from "../../assets/UploadImg.svg";
 import AddMoreImage from "../../assets/AddImg.svg";
 import DelImg from "../../assets/delImg.svg";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  emtpyRequestImages,
   setEstimatedPrice,
+  setExpectedPrice,
   setRequestImages,
   setSuggestedImages,
 } from "../../redux/reducers/userRequestsSlice.js";
@@ -48,6 +50,7 @@ import SignUpModal from "../components/SignUpModal";
 const ImageSuggestion = () => {
   const [imagesLocal, setImagesLocal] = useState([]);
   const navigation = useNavigation();
+  const route=useRoute();
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
   const [cameraScreen, setCameraScreen] = useState(false);
@@ -88,7 +91,9 @@ const ImageSuggestion = () => {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const userDetails = useSelector((store) => store.user.userDetails);
   const [signUpModal, setSignUpModal] = useState(false);
+  const navigationState = useNavigationState((state) => state);
 
+  const isImgSuggestion =navigationState.routes[navigationState.index].name === "image-suggestion";
   useEffect(() => {
     if (requestCategory.includes("Service")) setIsService(true);
   }, []);
@@ -109,6 +114,13 @@ const ImageSuggestion = () => {
       useNativeDriver: true,
     }).start(() => setSelectedImage(null));
   };
+  const handleCloseSuggestion = () => {
+    Animated.timing(scaleAnimation, {
+      toValue: 0,
+      duration: 100,
+      useNativeDriver: true,
+    }).start(() => setSelectedImage(null));
+  };
 
   useEffect(() => {
     (async () => {
@@ -118,6 +130,7 @@ const ImageSuggestion = () => {
   }, [cameraScreen]);
 
   const takePicture = async () => {
+    setLoading(true);
     const options = {
       mediaType: "photo",
       saveToPhotos: true,
@@ -136,8 +149,14 @@ const ImageSuggestion = () => {
             [{ resize: { width: 600, height: 800 } }],
             { compress: 0.5, format: "jpeg", base64: true }
           );
-          dispatch(setRequestImages(compressedImage.uri));
+          dispatch(setRequestImages([compressedImage.uri]));
+          dispatch(setSuggestedImages([]));
+
+          navigation.navigate("define-request");
+          setLoading(false)
+
         } catch (error) {
+          setLoading(false)
           console.error("Error processing image: ", error);
         }
       }
@@ -206,12 +225,35 @@ const ImageSuggestion = () => {
   };
 
   useEffect(() => {
+    
     categoryListedProduct();
   }, []);
+
+  // useEffect(() => {
+  //   if (isImgSuggestion) {
+  //     const backAction = () => {
+  //       dispatch(setSuggestedImages([]));
+  //       dispatch(setRequestImages([]));
+  //       dispatch(setExpectedPrice(0));
+  //       dispatch(setEstimatedPrice(0));
+  //       return false; // Prevent the default back action
+  //     };
+  
+  //     const backHandler = BackHandler.addEventListener(
+  //       "hardwareBackPress",
+  //       backAction
+  //     );
+  
+  //     return () => backHandler.remove(); // Clean up the event listener
+  //   }
+  // }, [isImgSuggestion]);
+  
+ 
 
   const renderProductItem = ({ item }) => (
     <Pressable
       onPress={() => {
+        
         handleImagePress(item.productImage);
         setIsSuggestion(true);
         setSelectedImgEstimatedPrice(item.productPrice);
@@ -298,12 +340,14 @@ const ImageSuggestion = () => {
         [{ resize: { width: 600, height: 800 } }],
         { compress: 0.5, format: "jpeg" }
       );
-      dispatch(setRequestImages(compressedImage.uri));
+      dispatch(setRequestImages([compressedImage.uri]));
+      dispatch(setSuggestedImages([]));
+      navigation.navigate("define-request");
+
     }
   };
 
-//   useEffect(() => {
-//     const backAction = () => {
+
 //       if (requestImages || suggestedImages) {
 //         return true;
 //       } else {
@@ -327,12 +371,12 @@ const ImageSuggestion = () => {
     );
   };
 
-  if (hasCameraPermission === null) {
-    return <View />;
-  }
-  if (hasCameraPermission === false) {
-    return <Text>No access to camera</Text>;
-  }
+  // if (hasCameraPermission === null) {
+  //   return <View />;
+  // }
+  // if (hasCameraPermission === false) {
+  //   return <Text>No access to camera</Text>;
+  // }
 
 
   
@@ -340,17 +384,23 @@ const ImageSuggestion = () => {
   return (
     <>
       <View
-        edges={["top", "bottom"]}
+      
         style={{ flex: 1, backgroundColor: "white" }}
       >
         <View style={{ flex: 1}}>
           <View className=" flex  mt-[40px] flex-row  items-center  px-[32px]">
-            <Pressable
-              onPress={() => navigation.goBack()}
-              className="px-[8px] py-[20px] "
+          <TouchableOpacity
+              onPress={() =>{
+              navigation.goBack()
+              dispatch(setSuggestedImages([]));
+              dispatch(setRequestImages([]));
+              dispatch(setExpectedPrice(0));
+              dispatch(setEstimatedPrice(0));
+              }}
+              style={{paddingHorizontal:8, paddingVertical:20}}
             >
               <BackArrow width={14} height={10} />
-            </Pressable>
+            </TouchableOpacity>
             <Text
               className="text-[16px] flex flex-1 justify-center text-[#2e2c43] items-center text-center"
               style={{ fontFamily: "Poppins-ExtraBold" }}
@@ -373,13 +423,13 @@ const ImageSuggestion = () => {
             </Pressable>
           </View>
           <View className="mt-[10px] mb-[27px] px-[32px]">
-            <Text
+            {/* <Text
               className="text-[14.5px] text-[#FB8C00] text-center mb-[15px] "
               style={{ fontFamily: "Poppins-Medium" }}
             >
               Step 2/4
-            </Text>
-            {suggestedImages?.length == 0 && requestImages?.length == 0 && (
+            </Text> */}
+           
               <View
                 style={{
                   flexDirection: "row",
@@ -422,9 +472,9 @@ const ImageSuggestion = () => {
                   </Text>
                 </TouchableOpacity>
               </View>
-            )}
+        
 
-            {suggestedImages?.length > 0 ||
+            {/* {suggestedImages?.length > 0 ||
               (requestImages?.length > 0 && (
                 <View
                   style={{
@@ -443,27 +493,32 @@ const ImageSuggestion = () => {
                       : "Add more product images."}
                   </Text>
                 </View>
-              ))}
+              ))} */}
 
             {/* {(suggestedImages?.length > 0 || requestImages?.length > 0) && <View style={{ justifyContent: 'center', alignItems: 'center' }}>
                             <Text style={{ fontFamily: 'Poppins-Regular', fontSize: 15, color: '#2e2c43' }}>Add Product</Text>
                         </View>} */}
           </View>
 
-          {
-          requestImages?.length === 0 && suggestedImages?.length == 0 && (
+         
             <View
               style={{ flexDirection: "row", justifyContent: "space-evenly" }}
             >
-              <TouchableOpacity onPress={() => takePicture()}>
+              <TouchableOpacity onPress={() =>{
+                 if (!userDetails?._id) setSignUpModal(true);
+                 else takePicture();
+                   } }>
                 <ClickImage />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => pickImage()}>
+              <TouchableOpacity onPress={() =>{
+                if (!userDetails?._id) setSignUpModal(true);
+                else pickImage();
+                 } }>
                 <UploadImg />
               </TouchableOpacity>
             </View>
-          )}
-          {(requestImages?.length > 0 || suggestedImages?.length > 0) && (
+          
+          {/* {(requestImages?.length > 0 || suggestedImages?.length > 0) && (
             <View>
               <ScrollView
                 horizontal
@@ -532,9 +587,9 @@ const ImageSuggestion = () => {
                 </TouchableOpacity>
               )}
             </View>
-          )}
+          )} */}
 
-          {suggestedImages?.length == 0 && requestImages?.length == 0 && (
+        
             <View
               style={{
                 flex: 1,
@@ -615,7 +670,7 @@ const ImageSuggestion = () => {
                 }}
               />
             </View>
-          )}
+         
         </View>
         <ModalCancel
           modalVisible={modalVisible}
@@ -625,7 +680,7 @@ const ImageSuggestion = () => {
         />
         {modalVisible && <View style={styles.overlay} />}
         {/* {addMore && <View style={styles.overlay} />} */}
-        {!addMore &&
+        {/* {!addMore &&
           (requestImages.length > 0 || suggestedImages.length > 0) && (
             <View className="absolute bottom-0 left-0 right-0">
               <TouchableOpacity
@@ -651,53 +706,9 @@ const ImageSuggestion = () => {
                 </View>
               </TouchableOpacity>
             </View>
-          )}
+          )} */}
 
-        {addMore && (
-          <View
-            style={{ flex: 1 }}
-            className="absolute  left-0 right-0 bottom-0 z-50 h-screen shadow-2xl "
-          >
-            <TouchableOpacity
-              onPress={() => {
-                setAddMore(false);
-              }}
-            >
-              <View
-                className="h-full w-screen "
-                style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-              ></View>
-            </TouchableOpacity>
-            <View className="bg-white absolute bottom-0 left-0 right-0 ">
-              <TouchableOpacity
-                onPress={() => {
-                  pickImage();
-                  setAddMore(false);
-                }}
-              >
-                <View className="items-center flex-row justify-between pl-[15px] pr-[30px] mx-[20px] py-[30px]  border-b-[1px] border-gray-400">
-                  <Text style={{fontFamily: "Poppins-Regular" }}>
-                    Upload Image
-                  </Text>
-                  <RightArrow />
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  takePicture();
-                  setAddMore(false);
-                }}
-              >
-                <View className="items-center flex-row justify-between pl-[15px] pr-[30px] mx-[20px] py-[30px]">
-                  <Text style={{ fontFamily: "Poppins-Regular" }}>
-                    Click Image
-                  </Text>
-                  <RightArrow />
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+        
         <Modal visible={descModal} transparent={true}>
           <TouchableOpacity
             onPress={() => {
@@ -829,12 +840,25 @@ const ImageSuggestion = () => {
               {isSuggestion && (
                 <Pressable
                   onPress={() => {
-                    dispatch(
-                      setSuggestedImages([...suggestedImages, selectedImage])
-                    );
-                    handleClose();
-                    if (selectedImgEstimatedPrice > 0) {
-                      dispatch(setEstimatedPrice(selectedImgEstimatedPrice));
+                    handleCloseSuggestion();
+                    if (!userDetails?._id) setSignUpModal(true);
+                    else{
+                      
+                      dispatch(
+                        setSuggestedImages([selectedImage])
+                      );
+                      dispatch(setRequestImages([]));
+
+                      
+                      if (selectedImgEstimatedPrice > 0) {
+                        dispatch(setEstimatedPrice(selectedImgEstimatedPrice));
+                      }
+                        setTimeout(()=>{
+                          navigation.navigate("define-request");
+                        },200);
+                   
+                      
+                      
                     }
                   }}
                 >

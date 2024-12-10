@@ -72,7 +72,18 @@ const RequestPreviewScreen = () => {
 
 
   // }, [])
-
+  console.log(
+    "userDetails",
+    userDetails._id,
+    requestDetail,
+    requestCategory,
+    requestImages,
+    suggestedImages,
+    expectedPrice,
+    spadePrice,
+    userLongitude,
+    userLatitude
+  );
 
   const handleSubmit = async () => {
     console.log(
@@ -91,7 +102,7 @@ const RequestPreviewScreen = () => {
 
     const formData = new FormData();
 
-    requestImages.forEach((image, index) => {
+    requestImages?.forEach((image, index) => {
       formData.append('requestImages', {
         uri: image,
         type: 'image/jpeg', // Adjust this based on the image type
@@ -185,32 +196,42 @@ const RequestPreviewScreen = () => {
         </View>
         <View className="px-[32px]">
           <Text className="text-[14px]  text-[#2e2c43]" style={{ fontFamily: "Poppins-Black" }}>
-            Spades of master
+            Spades of my master
           </Text>
           <Text className="text-[14px] text-[#2e2c43] w-4/5 mt-[5px]" style={{ fontFamily: "Poppins-Regular" }}>
             {requestDetail}
           </Text>
         </View>
 
-        <View className="px-[32px] pt-[20px]">
+        {/* <View className="px-[32px] pt-[20px]">
           <Text className="text-[14px]  text-[#2e2c43]" style={{ fontFamily: "Poppins-Black" }}>
             Spades Location
           </Text>
           <Text className="text-[14px] text-[#2e2c43]  mt-[5px]" style={{ fontFamily: "Poppins-Regular" }}>
-            {userDetails.location}
+            {userDetails?.location}
+          </Text>
+        </View> */}
+        <View className="px-[32px] pt-[20px]">
+          <Text className="text-[14px]  text-[#2e2c43]" style={{ fontFamily: "Poppins-Black" }}>
+            Category
+          </Text>
+          <Text className="text-[14px] text-[#2e2c43]  mt-[5px]" style={{ fontFamily: "Poppins-Regular" }}>
+            {requestCategory}
           </Text>
         </View>
 
-        <View className="px-[32px] mt-[20px]">
-          <Text className="text-[14px]  text-[#2e2c43]" style={{ fontFamily: "Poppins-Black" }}>
+        <View className=" mt-[20px]">
+          <Text className="text-[14px] px-[32px]  text-[#2e2c43]" style={{ fontFamily: "Poppins-Black" }}>
             Reference images for vendors
           </Text>
           <ScrollView
             horizontal={true}
+            showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
               flexDirection: "row",
-              gap: 4,
+              gap: 10,
               paddingVertical: 15,
+              paddingHorizontal:32
             }}
             style={{ alignSelf: 'flex-start' }}
           >
@@ -239,10 +260,10 @@ const RequestPreviewScreen = () => {
           </ScrollView>
         </View>
         <View className="mx-[32px] mt-[30px] mb-[100px]">
-          <Text className=" text-[14px]  text-[#2e2c43]   mb-[6px]" style={{ fontFamily: "Poppins-Bold" }}>
+          <Text className=" text-[14px]  text-[#2e2c43]   mb-[6px] " style={{ fontFamily: "Poppins-Bold" }}>
             Your expected price
           </Text>
-          <Text className="text-[24px] text-[#558b2f] mb-[10px]" style={{ fontFamily: "Poppins-ExtraBold" }}>
+          <Text className="text-[24px] text-[#558b2f] mb-[20px] border-b-[1px] border-[#e7e7e7] border-opacity-5" style={{ fontFamily: "Poppins-ExtraBold" }}>
             {expectedPrice === 0 ? "NaN" : `${expectedPrice} Rs`}
           </Text>
           {/* <Text className=" text-[14px] text-[#2e2c43] mb-[6px] " style={{ fontFamily: "Poppins-Bold" }}>
@@ -252,7 +273,7 @@ const RequestPreviewScreen = () => {
             {spadeCouponCode.length > 0 ? spadeCouponCode : "NA"}
           </Text> */}
 
-          <Text className=" text-[14px] text-[#2e2c43] mb-[6px] mt-[20px] " style={{ fontFamily: "Poppins-Bold" }}>
+          <Text className=" text-[14px] text-[#2e2c43] mb-[6px] mt-[0px] " style={{ fontFamily: "Poppins-Bold" }}>
             Cost for this request
           </Text>
           <Text className="text-[18px]  text-[#558b2f] pb-[20px]" style={{ fontFamily: "Poppins-ExtraBold" }}>
@@ -275,7 +296,7 @@ const RequestPreviewScreen = () => {
               <ActivityIndicator size="small" color="#ffffff" />
             ) : (
               <Text className="text-white text-[18px] " style={{ fontFamily: "Poppins-Black" }}>
-                Send Bargaining Request
+                Send Request
               </Text>
             )}
           </View>
