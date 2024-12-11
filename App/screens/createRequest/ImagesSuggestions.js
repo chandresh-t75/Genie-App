@@ -871,12 +871,12 @@ const ImageSuggestion = () => {
                       borderWidth: 2,
                       borderRadius: 16,
                       borderColor: "#fb8c00",
-                      paddingHorizontal: 40,
+                      paddingHorizontal: 20,
                       paddingVertical: 15,
                       marginTop: 10,
                     }}
                   >
-                    Add Product To Start Bargaining
+                    Add Product To View & Bargaining
                   </Text>
                 </Pressable>
               )}

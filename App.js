@@ -20,6 +20,7 @@ import * as Location from "expo-location";
 
 
 
+
 export default function App() {
 
   let [fontsLoaded] = useFonts(
@@ -71,5 +72,3 @@ export default function App() {
     </Provider>
   );
 }
-
-

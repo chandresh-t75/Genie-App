@@ -15,6 +15,7 @@
       "fallbackToCacheTimeout": 0
     },
     "plugins": [
+     
       [
         "expo-location",
         {

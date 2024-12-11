@@ -89,6 +89,7 @@ const MobileNumberEntryScreen = () => {
           console.log("token", tokenId);
           setToken(tokenId);
           dispatch(setUniqueToken(tokenId));
+
         });
     } else {
       console.log("permission not granted", authStatus);
@@ -210,7 +211,7 @@ const MobileNumberEntryScreen = () => {
           // handleRefreshLocation(response.data.user._id, response.data.accessToken);
 
           // setMobileNumberLocal("");
-          await updateToken(response?.data?.user?._id, response.data.accessToken);
+          await updateToken(response?.data?.user?._id, response?.data?.accessToken);
           navigation.navigate("home");
           // const config = {
           //   headers: { // Use "headers" instead of "header"
@@ -266,17 +267,29 @@ const MobileNumberEntryScreen = () => {
 
   const updateToken = async (id, accessToken) => {
     try {
+
+      if (requestUserPermission()) {
+        messaging()
+          .getToken()
+          .then((tokenId) => {
+            console.log("token at updating", tokenId);
+            setToken(tokenId);
+            // dispatch(setUniqueToken(tokenId));
+            
+          });
+      } 
       const config = {
         headers: { // Use "headers" instead of "header"
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${accessToken}`,
         }
       };
+      console.log("tok",token)
 
       await axios
         .patch(`${baseUrl}/user/edit-profile`, {
           _id: id,
-          updateData: { uniqueToken: uniqueToken || token },
+          updateData: { uniqueToken:  token || uniqueToken },
         }, config)
         .then(async (res) => {
           console.log('uniquetoken at auto verify', uniqueToken);
@@ -297,7 +310,7 @@ const MobileNumberEntryScreen = () => {
           console.error("Error updating token: " + err.message);
         });
     } catch (error) {
-
+         console.log(error)
     }
   }
 
