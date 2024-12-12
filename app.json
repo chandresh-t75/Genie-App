@@ -12,7 +12,7 @@
       "backgroundColor": "#ffffff"
     },
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout":0
     },
     "plugins": [
       "expo-splash-screen",
