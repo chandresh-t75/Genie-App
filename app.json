@@ -15,7 +15,7 @@
       "fallbackToCacheTimeout":0
     },
     "plugins": [
-      "expo-splash-screen",
+      "expo-splash-screen ",
       [
         "expo-location",
         {
